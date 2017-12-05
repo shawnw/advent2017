@@ -18,7 +18,7 @@
                                   ((q r) (div-and-mod d2 d1)))
                       (if (= r 0)
                           (return q))))
-                  (remove (cut = elem1 <>) lst)))
+                  (delete elem1 lst =)))
       lst)
      #f)))
 (define (checksum-line lst)

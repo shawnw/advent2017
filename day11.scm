@@ -1,19 +1,22 @@
 (import (srfi 1) (kawa quaternions))
 
-(define north (make-vector-quaternion 0 1 -1))
-(define northeast (make-vector-quaternion 1 0 -1))
-(define southeast (make-vector-quaternion 1 -1 0))
-(define south (make-vector-quaternion 0 -1 1))
-(define southwest (make-vector-quaternion -1 0 1))
-(define northwest (make-vector-quaternion -1 1 0))
+(define north      0i+1j-1k)
+(define northeast  1i+0j-1k)
+(define southeast  1i-1j+0k)
+(define south      0i-1j+1k)
+(define southwest -1i+0j+1k)
+(define northwest -1i+1j+0k)
 (define directions `((n . ,north) (ne . ,northeast) (se . ,southeast)
                      (s . ,south) (sw . ,southwest) (nw . ,northwest)))
 
-(define (distance p1 p2)
-  (apply max (map abs (vector-quaternion->list (- p1 p2)))))
+(define (distance p1::quaternion p2::quaternion)
+  (let ((d (- p1 p2)))
+    (max (abs (imag-part d))
+         (abs (jmag-part d))
+         (abs (kmag-part d)))))
 
 (define (find-distance route)
-  (let* ((origin (make-vector-quaternion 0 0 0))
+  (let* ((origin 0)
          (destination
           (fold
            (lambda (move points)

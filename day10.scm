@@ -1,0 +1,56 @@
+(cond-expand
+ (kawa
+  (import (srfi 1) (srfi 133) (data-structures)))
+ (chicken
+  (require-extension srfi-1 vector-lib format)))
+
+(define line (read-line))
+(define pos 0)
+(define skip 0)
+(define (solve numbers lengths)
+  (let* ((maxlen (vector-length numbers))
+         (modadd (lambda args (remainder (apply + args) maxlen)))
+         (moddecr (lambda (a) (if (= a 0) (- maxlen 1) (- a 1))))
+         (reverse-section!
+          (lambda (len)
+            (let ((start pos)
+                  (end (moddecr (modadd pos len)))
+                  (endsteps (quotient len 2)))
+              (do ((i start (modadd i 1))
+                   (j end (moddecr j))
+                   (steps 0 (+ steps 1)))
+                  ((= steps endsteps))
+                (vector-swap! numbers i j))
+              (set! pos (modadd pos len skip))
+              (set! skip (+ skip 1))))))
+    (for-each reverse-section! lengths)
+    (* (vector-ref numbers 0) (vector-ref numbers 1))))
+
+(define (solve-part1 numlen lengths)
+  (set! pos 0)
+  (set! skip 0)
+  (solve (list->vector (iota numlen)) lengths))
+
+(format #t "Test 1: ~A~%" (solve-part1 5 '(3 4 1 5)))
+(define input-part1 (map string->number (string-split line ",")))
+(format #t "Part 1: ~A~%" (solve-part1 256 input-part1))
+
+(define (solve-part2 str)
+  (let ((lengths (append
+                  (map char->integer (string->list str))
+                  '(17 31 73 47 23)))
+        (numbers (list->vector (iota 256))))
+    (set! pos 0)
+    (set! skip 0)
+    (do ((i 0 (+ i 1)))
+        ((= i 64))
+      (solve numbers lengths))
+    (let* ((blocks (chop (vector->list numbers) 16))
+           (dense (map (cut reduce bitwise-xor #f <>) blocks)))
+      (string-concatenate (map (cut format "~2,'0X" <>) dense)))))
+
+(format #t "Test 2: ~A~%" (solve-part2 ""))
+(format #t "Test 3: ~A~%" (solve-part2 "AoC 2017"))
+(format #t "Test 4: ~A~%" (solve-part2 "1,2,3"))
+(format #t "Test 5: ~A~%" (solve-part2 "1,2,4"))
+(format #t "Part 2: ~A~%" (solve-part2 line))

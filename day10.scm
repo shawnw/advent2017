@@ -1,8 +1,4 @@
-(cond-expand
- (kawa
-  (import (srfi 1) (srfi 133) (data-structures)))
- (chicken
-  (require-extension srfi-1 vector-lib format)))
+(import (srfi 1) (srfi 133) (knot-hash))
 
 (define line (read-line))
 (define pos 0)
@@ -35,22 +31,9 @@
 (define input-part1 (map string->number (string-split line ",")))
 (format #t "Part 1: ~A~%" (solve-part1 256 input-part1))
 
-(define (solve-part2 str)
-  (let ((lengths (append
-                  (map char->integer (string->list str))
-                  '(17 31 73 47 23)))
-        (numbers (list->vector (iota 256))))
-    (set! pos 0)
-    (set! skip 0)
-    (do ((i 0 (+ i 1)))
-        ((= i 64))
-      (solve numbers lengths))
-    (let* ((blocks (chop (vector->list numbers) 16))
-           (dense (map (cut reduce bitwise-xor #f <>) blocks)))
-      (string-concatenate (map (cut format "~2,'0X" <>) dense)))))
-
-(format #t "Test 2: ~A~%" (solve-part2 ""))
-(format #t "Test 3: ~A~%" (solve-part2 "AoC 2017"))
-(format #t "Test 4: ~A~%" (solve-part2 "1,2,3"))
-(format #t "Test 5: ~A~%" (solve-part2 "1,2,4"))
-(format #t "Part 2: ~A~%" (solve-part2 line))
+(format #t "Test 2: ~A~%" (knot-hash ""))
+(format #t "Test 3: ~A~%" (knot-hash "AoC 2017"))
+(format #t "Test 4: ~A~%" (knot-hash "1,2,3"))
+(format #t "Test 5: ~A~%" (knot-hash "1,2,4"))
+(format #t "Part 2: ~A~%" (knot-hash line))
+ 

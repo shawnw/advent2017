@@ -1,45 +1,17 @@
-(import (srfi 1) (srfi 133) (data-structures))
+(import (srfi 1) (list-utils) (knot-hash))
 
-(define (hash numbers lengths)
-  (let* ((lengths (append lengths '(17 31 73 47 23)))
-         (pos 0)
-         (skip 0)
-         (maxlen (vector-length numbers))
-         (modadd (lambda args (remainder (apply + args) maxlen)))
-         (moddecr (lambda (a) (if (= a 0) (- maxlen 1) (- a 1))))
-         (reverse-section!
-          (lambda (len)
-            (let ((start pos)
-                  (end (moddecr (modadd pos len)))
-                  (endsteps (quotient len 2)))
-              (do ((i start (modadd i 1))
-                   (j end (moddecr j))
-                   (steps 0 (+ steps 1)))
-                  ((= steps endsteps))
-                (vector-swap! numbers i j))
-              (set! pos (modadd pos len skip))
-              (set! skip (+ skip 1))))))
-    (do ((i 0 (+ i 1)))
-         ((= i 64))
-      (for-each reverse-section! lengths))
-    (let* ((blocks (chop (vector->list numbers) 16))
-           (dense (map (cut reduce bitwise-xor #f <>) blocks)))
-      (string-concatenate (map (cut format "~2,'0X" <>) dense)))))
+(define (make-input seed row) (format "~A-~A" seed row))
 
-(define (make-input seed row)
-  (map char->integer (string->list (format "~A-~A" seed row))))
-
-(define (to-bits n) (format "~4,0B" n))
-
+(define (to-bits n) (format "~4,'0B" n))
 (define (as-bits lst) (string-concatenate (map to-bits lst)))
 
-(define (grid-ref grid x y)
+(define (grid-ref grid::vector x::int y::int)
   (vector-ref (vector-ref grid y) x))
                   
-(define (grid-set! grid x y val)
+(define (grid-set! grid::vector x::int y::int val)
   (vector-set! (vector-ref grid y) x val))
 
-(define (fill-region! grid x y c)
+(define (fill-region! grid::vector x::int y::int c)
   (grid-set! grid x y c)
   (if (and (> x 0) (eq? (grid-ref grid (- x 1) y) #t))
       (fill-region! grid (- x 1) y c))
@@ -51,17 +23,17 @@
       (fill-region! grid x (+ y 1) c)))
   
 (define (count-regions grid)
-  (let* ((grid (list->vector
+  (let ((grid (list->vector
                 (map (lambda (line)
-                       (list->vector
-                        (map (lambda (c)
-                               (if (char=? c #\1) #t #f))
-                             (string->list (as-bits line)))))
+                       (string->vectormap
+                        (lambda (c)
+                          (if (char=? c #\1) #t #f))
+                        (as-bits line)))
                      grid)))
-         (regions 0))
-    (do ((x 0 (+ x 1)))
+         (regions ::int 0))
+    (do ((x ::int 0 (+ x 1)))
         ((= x 128) regions)
-      (do ((y 0 (+ y 1)))
+      (do ((y ::int 0 (+ y 1)))
           ((= y 128))
         (when (eq? (grid-ref grid x y) #t)
               (set! regions (+ regions 1))
@@ -77,9 +49,7 @@
              (grid '()))
     (if (= n 128)
         (values bits (count-regions grid))
-        (let* ((numbers (list->vector (iota 256)))
-               (lengths (make-input seed n))
-               (hashed (hash numbers lengths))
+        (let* ((hashed (knot-hash (make-input seed n)))
                (asnums (map (lambda (hexdigit)
                               (cdr (assq hexdigit c2n)))
                             (string->list hashed))))
@@ -89,6 +59,6 @@
                 (cons asnums grid))))))
 
 (format #t "Test 1: ~A~%" (solve "flqrgnkx"))
-(format #t "Part 1: ~A~%" (solve "ffayrhll"))
+(format #t "Parts 1 & 2: ~A~%" (solve "ffayrhll"))
 
         

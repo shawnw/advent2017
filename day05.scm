@@ -6,9 +6,9 @@
 
 (define (step-through jumps #!optional (offset3 :: int 1))
   (let ((jumps (list->s32vector jumps))
-        (steps 0))
+        (steps ::int 0))
     (until-out-of-bounds
-     (let loop ((i :: int 0))
+     (let loop ((i ::int 0))
        (let ((v (s32vector-ref jumps i)))
          (if (>= v 3)
              (s32vector-set! jumps i (+ v offset3))

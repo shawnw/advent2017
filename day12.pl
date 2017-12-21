@@ -6,8 +6,7 @@ print "graph day12 {\n";
 
 while (<>) {
     s/<->/--/;
-    s/,/ -- /g;
-    print $_;
+    print;
 }
 
 print "}\n";

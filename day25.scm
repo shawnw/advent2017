@@ -18,19 +18,18 @@
     (vector write-instr move-instr trans-instr)))
 
 (define (read-states)
-  (reverse!
-   (let loop ((states '()))
-     (let ((line (read-line)))
-       (cond
-        ((eof-object? line)
-         states)
+  (let loop ((states '()))
+    (let ((line (read-line)))
+      (cond
+       ((eof-object? line)
+        (reverse! states))
        ((= (string-length line) 0)
         (loop states))
        (else
         (let* ((state (string-ref (second (regex-match in-state-re line)) 0))
                (zero (read-directions))
                (one (read-directions)))
-          (loop (cons (vector zero one) states)))))))))
+          (loop (cons (vector zero one) states))))))))
           
 (define (read-machine)
   (let* ((initial-state (string-ref (second (regex-match start-state-re (read-line))) 0))
@@ -56,10 +55,10 @@
 (define (tape-checksum tape) (coll-count tape 1))
 
 (define (run-machine states starting reps::int)
-  (let* ((tape (coll-make-array-list (coll-immut-list 10000 0))))
+  (let ((tape (coll-make-array-list (coll-immut-list 10000 0))))
     (let loop ((n ::int 0) (state ::int starting) (pos ::int 6200))
       (if (= n reps)
-          (values (tape-checksum tape) (coll-size tape))
+          (tape-checksum tape)
           (let ((dirs (vector-ref (vector-ref states state) (coll-list-get tape pos))))
             (coll-list-set! tape pos (vector-ref dirs 0))
             (loop (+ n 1) (vector-ref dirs 2) (if (eq? (vector-ref dirs 1) 'left)
